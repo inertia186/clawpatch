@@ -64,6 +64,80 @@ describe("mapFeatures", () => {
     ]);
   });
 
+  it("maps Azure Bicep deployments and parameter files", async () => {
+    const root = await fixtureRoot("clawpatch-bicep-map-");
+    await writeFixture(root, "bicepconfig.json", "{}");
+    await writeFixture(
+      root,
+      "main.bicep",
+      [
+        "param location string",
+        "@secure()",
+        "param adminPassword string",
+        "resource stg 'Microsoft.Storage/storageAccounts@2023-01-01' = {",
+        "  name: 'storageacct'",
+        "  location: location",
+        "}",
+        "resource vnet 'Microsoft.Network/virtualNetworks@2023-05-01' = {",
+        "  name: 'vnet'",
+        "}",
+        "resource role 'Microsoft.Authorization/roleAssignments@2022-04-01' = {",
+        "  name: guid(resourceGroup().id, principalId)",
+        "}",
+        "resource script 'Microsoft.Resources/deploymentScripts@2023-08-01' = {",
+        "  name: 'script'",
+        "}",
+        "module app './modules/app.bicep' = {",
+        "  name: 'app'",
+        "}",
+        "output storageName string = stg.name",
+        "",
+      ].join("\n"),
+    );
+    await writeFixture(root, "modules/app.bicep", "param location string\n");
+    await writeFixture(
+      root,
+      "prod.bicepparam",
+      "using './main.bicep'\nparam location = 'westus'\n",
+    );
+
+    const project = await detectProject(root);
+    const result = await mapFeatures(root, project, []);
+    const deployment = result.features.find(
+      (feature) => feature.title === "Bicep deployment main.bicep",
+    );
+    const params = result.features.find(
+      (feature) => feature.title === "Bicep parameters prod.bicepparam",
+    );
+
+    expect(result.features.map((feature) => feature.title)).toContain(
+      "Project config bicepconfig.json",
+    );
+    expect(deployment?.summary).toBe(
+      "Bicep deployment with 4 resources, 1 modules, 2 parameters, 1 outputs, 1 secure parameters.",
+    );
+    expect(deployment?.kind).toBe("infra");
+    expect(deployment?.ownedFiles).toEqual([
+      { path: "main.bicep", reason: "Bicep deployment file" },
+      { path: "modules/app.bicep", reason: "local Bicep module" },
+    ]);
+    expect(deployment?.contextFiles).toEqual([
+      { path: "bicepconfig.json", reason: "Azure deployment configuration" },
+    ]);
+    expect(deployment?.trustBoundaries).toEqual([
+      "auth",
+      "database",
+      "external-api",
+      "network",
+      "permissions",
+      "process-exec",
+      "secrets",
+      "serialization",
+    ]);
+    expect(params?.source).toBe("bicep-params");
+    expect(params?.summary).toBe("Bicep parameter file with 1 parameters.");
+  });
+
   it("maps Next routes under src/app and src/pages", async () => {
     const root = await fixtureRoot("clawpatch-map-next-src-");
     await writeFixture(

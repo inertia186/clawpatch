@@ -45,6 +45,8 @@ Supported deterministic mappers today:
 - Ruby project metadata, executables, source groups, RSpec/Minitest suites,
   Rails configs, routes, views, assets, and database files
 - Rust Cargo commands, libraries, workspace crates, and integration tests
+- Azure Bicep deployments and parameter files, including resources, modules,
+  parameters, outputs, and deployment-sensitive trust boundaries
 - C/C++ standalone `main()` files, CMake targets, and autotools targets
 - SwiftPM executable targets, library targets, and test suites
 - nested SwiftPM packages

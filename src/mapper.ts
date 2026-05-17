@@ -1,5 +1,6 @@
 import { nowIso } from "./fs.js";
 import { stableId } from "./id.js";
+import { bicepSeeds } from "./mappers/bicep.js";
 import { cCppSeeds } from "./mappers/c-cpp.js";
 import { configSeeds } from "./mappers/config.js";
 import { goSeeds } from "./mappers/go.js";
@@ -34,6 +35,7 @@ const featureMappers: FeatureMapper[] = [
   { name: "python", map: pythonSeeds },
   { name: "ruby", map: rubySeeds },
   { name: "rust", map: rustSeeds },
+  { name: "bicep", map: bicepSeeds },
   { name: "c-cpp", map: cCppSeeds },
   { name: "swift", map: swiftSeeds },
   { name: "apple", map: appleSeeds },

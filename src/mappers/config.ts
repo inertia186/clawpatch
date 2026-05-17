@@ -9,6 +9,8 @@ export async function configSeeds(root: string): Promise<FeatureSeed[]> {
     "turbo.json",
     "oxlint.json",
     "vitest.config.ts",
+    "bicepconfig.json",
+    "azure.yaml",
     "go.mod",
     "Cargo.toml",
     "Cargo.lock",
