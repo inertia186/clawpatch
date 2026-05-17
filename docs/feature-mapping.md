@@ -53,6 +53,8 @@ Supported deterministic mappers today:
 - Laravel/PHP projects from `composer.json` and `artisan`, including controllers
   referenced by routes, form requests, Artisan commands, jobs, services, models,
   migrations, seeders, Composer scripts, and grouped PHP test suites
+- legal brief sections in Markdown, reStructuredText, or plain text documents,
+  including facts, arguments, authorities, conclusions, exhibits, and service certificates
 - common config files
 
 The mapper does not call a model. It uses repo conventions and cheap filesystem

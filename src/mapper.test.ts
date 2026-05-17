@@ -64,6 +64,63 @@ describe("mapFeatures", () => {
     ]);
   });
 
+  it("maps legal brief sections without making legal judgments", async () => {
+    const root = await fixtureRoot("clawpatch-legal-brief-map-");
+    await writeFixture(
+      root,
+      "briefs/motion-to-dismiss.md",
+      [
+        "# Question Presented",
+        "Whether the Court should dismiss the Complaint. Confidential client facts follow.",
+        "",
+        "# Statement of Facts",
+        "Plaintiff alleges a contract. Defendant denies the claim.",
+        "The record cites 410 U.S. 113 and 12 F.3d 456.",
+        "",
+        "# Argument",
+        "The rule clearly applies. See Section II infra.",
+        "> The quoted holding is block quoted for review.",
+        "The brief cites 28 U.S.C. § 1332 and Fed. R. Civ. P. 12.",
+        "",
+        "# Certificate of Service",
+        "I certify service on all parties.",
+        "",
+      ].join("\n"),
+    );
+    await writeFixture(root, "docs/notes.md", "# Project Notes\nThis is ordinary documentation.\n");
+
+    const project = await detectProject(root);
+    const result = await mapFeatures(root, project, []);
+    const titles = result.features.map((feature) => feature.title);
+    const question = result.features.find(
+      (feature) => feature.title === "Legal brief Question Presented",
+    );
+    const argument = result.features.find((feature) => feature.title === "Legal brief Argument");
+
+    expect(titles).toContain("Legal brief Question Presented");
+    expect(titles).toContain("Legal brief Statement of Facts");
+    expect(titles).toContain("Legal brief Argument");
+    expect(titles).toContain("Legal brief Certificate of Service");
+    expect(titles).not.toContain("Legal brief Project Notes");
+    expect(question?.entrypoints[0]?.path).toBe("briefs/motion-to-dismiss.md");
+    expect(question?.trustBoundaries).toEqual([
+      "auth",
+      "external-api",
+      "permissions",
+      "secrets",
+      "serialization",
+      "user-input",
+    ]);
+    expect(argument?.summary).toContain("2 citation-like references");
+    expect(argument?.summary).toContain("1 absolute-language claims");
+    expect(argument?.summary).toContain("2 internal cross references");
+    expect(argument?.summary).toContain("1 block-quote lines");
+    expect(argument?.ownedFiles).toEqual([
+      { path: "briefs/motion-to-dismiss.md", reason: "Argument section" },
+    ]);
+    expect(argument?.tags).toEqual(["legal", "brief", "argument"]);
+  });
+
   it("maps Next routes under src/app and src/pages", async () => {
     const root = await fixtureRoot("clawpatch-map-next-src-");
     await writeFixture(
