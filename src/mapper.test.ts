@@ -64,6 +64,65 @@ describe("mapFeatures", () => {
     ]);
   });
 
+  it("maps PICO-8 text carts, callbacks, and asset sections", async () => {
+    const root = await fixtureRoot("clawpatch-pico8-map-");
+    await writeFixture(
+      root,
+      "carts/haunted.p8",
+      [
+        "pico-8 cartridge // http://www.pico-8.com",
+        "version 41",
+        "__lua__",
+        "function _init()",
+        " cartdata('haunted')",
+        " dset(0,1)",
+        "end",
+        "",
+        "function _update()",
+        " if btnp(4) then sfx(0) end",
+        "end",
+        "",
+        "function _draw()",
+        " cls()",
+        " spr(1, 64, 64)",
+        " map(0,0)",
+        "end",
+        "__gfx__",
+        "0000000011111111",
+        "__map__",
+        "0001020304050607",
+        "__sfx__",
+        "01010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "__music__",
+        "00 00010203",
+        "",
+      ].join("\n"),
+    );
+    await writeFixture(root, "carts/not-a-cart.p8", "__lua__\nfunction _draw() end\n");
+
+    const project = await detectProject(root);
+    const result = await mapFeatures(root, project, []);
+    const titles = result.features.map((feature) => feature.title);
+    const update = result.features.find((feature) => feature.title === "PICO-8 haunted _update");
+    const draw = result.features.find((feature) => feature.title === "PICO-8 haunted _draw");
+    const cart = result.features.find((feature) => feature.title === "PICO-8 cart haunted");
+
+    expect(titles).toContain("PICO-8 cart haunted");
+    expect(titles).toContain("PICO-8 haunted _init");
+    expect(titles).toContain("PICO-8 haunted _update");
+    expect(titles).toContain("PICO-8 haunted _draw");
+    expect(titles).toContain("PICO-8 haunted spritesheet");
+    expect(titles).toContain("PICO-8 haunted map");
+    expect(titles).toContain("PICO-8 haunted sound effects");
+    expect(titles).toContain("PICO-8 haunted music patterns");
+    expect(titles).not.toContain("PICO-8 cart not-a-cart");
+    expect(cart?.summary).toContain("__lua__, __gfx__, __map__, __sfx__, __music__");
+    expect(update?.summary).toContain("uses audio, input");
+    expect(update?.trustBoundaries).toEqual(["serialization", "user-input"]);
+    expect(draw?.kind).toBe("ui-flow");
+    expect(draw?.summary).toContain("uses graphics");
+  });
+
   it("maps Next routes under src/app and src/pages", async () => {
     const root = await fixtureRoot("clawpatch-map-next-src-");
     await writeFixture(

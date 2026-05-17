@@ -8,6 +8,7 @@ import { gradleSeeds } from "./mappers/gradle.js";
 import { laravelSeeds } from "./mappers/laravel.js";
 import { nextSeeds } from "./mappers/next.js";
 import { nodeSeeds } from "./mappers/node.js";
+import { pico8Seeds } from "./mappers/pico8.js";
 import { pythonSeeds } from "./mappers/python.js";
 import { reactSeeds } from "./mappers/react.js";
 import { discoverNodeProjects } from "./mappers/projects.js";
@@ -39,6 +40,7 @@ const featureMappers: FeatureMapper[] = [
   { name: "apple", map: appleSeeds },
   { name: "gradle", map: gradleSeeds },
   { name: "laravel", map: laravelSeeds },
+  { name: "pico8", map: pico8Seeds },
   { name: "config", map: configSeeds },
 ];
 
