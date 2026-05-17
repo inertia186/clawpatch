@@ -17,6 +17,7 @@ import { nearbyTests } from "./mappers/shared.js";
 import { swiftSeeds } from "./mappers/swift.js";
 import { turboTaskGraph } from "./mappers/turbo.js";
 import { FeatureMapper, FeatureSeed, MapperContext } from "./mappers/types.js";
+import { vibeSeeds } from "./mappers/vibe.js";
 import { FeatureRecord, ProjectRecord } from "./types.js";
 
 export type MapResult = {
@@ -40,6 +41,7 @@ const featureMappers: FeatureMapper[] = [
   { name: "gradle", map: gradleSeeds },
   { name: "laravel", map: laravelSeeds },
   { name: "config", map: configSeeds },
+  { name: "vibe", map: vibeSeeds },
 ];
 
 export async function mapFeatures(

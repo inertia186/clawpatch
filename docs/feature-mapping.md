@@ -54,6 +54,8 @@ Supported deterministic mappers today:
   referenced by routes, form requests, Artisan commands, jobs, services, models,
   migrations, seeders, Composer scripts, and grouped PHP test suites
 - common config files
+- indefensible vibe checks for files containing TODO, FIXME, HACK, cursed,
+  sorry, probably, YOLO, or repeated exclamation marks
 
 The mapper does not call a model. It uses repo conventions and cheap filesystem
 walks, skips symlinked directories, and excludes common generated folders.

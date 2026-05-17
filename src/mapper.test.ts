@@ -64,6 +64,35 @@ describe("mapFeatures", () => {
     ]);
   });
 
+  it("maps source files that fail the vibe check", async () => {
+    const root = await fixtureRoot("clawpatch-map-vibes-");
+    await writeFixture(
+      root,
+      "package.json",
+      JSON.stringify({ name: "bad-vibes", scripts: { test: "vitest run" } }, null, 2),
+    );
+    await writeFixture(
+      root,
+      "src/haunted.ts",
+      [
+        "// TODO: probably fix this",
+        "// FIXME: sorry",
+        "// HACK: this is cursed!!",
+        "export const value = 1;",
+        "",
+      ].join("\n"),
+    );
+
+    const project = await detectProject(root);
+    const result = await mapFeatures(root, project, []);
+    const vibe = result.features.find((feature) => feature.source === "vibe-check");
+
+    expect(vibe?.title).toBe("Vibe check src/haunted.ts");
+    expect(vibe?.summary).toContain("Indefensible textual vibe score");
+    expect(vibe?.ownedFiles).toEqual([{ path: "src/haunted.ts", reason: "failed the vibe check" }]);
+    expect(vibe?.tags).toEqual(["vibe-check", "indefensible"]);
+  });
+
   it("maps Next routes under src/app and src/pages", async () => {
     const root = await fixtureRoot("clawpatch-map-next-src-");
     await writeFixture(
