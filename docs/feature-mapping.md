@@ -53,6 +53,8 @@ Supported deterministic mappers today:
 - Laravel/PHP projects from `composer.json` and `artisan`, including controllers
   referenced by routes, form requests, Artisan commands, jobs, services, models,
   migrations, seeders, Composer scripts, and grouped PHP test suites
+- Minecraft datapacks from `pack.mcmeta` and `data/*`, including functions,
+  advancements, recipes, loot tables, predicates, and tags
 - common config files
 
 The mapper does not call a model. It uses repo conventions and cheap filesystem

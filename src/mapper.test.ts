@@ -64,6 +64,82 @@ describe("mapFeatures", () => {
     ]);
   });
 
+  it("maps Minecraft datapack functions and JSON resources", async () => {
+    const root = await fixtureRoot("clawpatch-minecraft-map-");
+    await writeFixture(
+      root,
+      "pack.mcmeta",
+      JSON.stringify({ pack: { pack_format: 48, description: "Clawpatch datapack" } }, null, 2),
+    );
+    await writeFixture(
+      root,
+      "data/claw/functions/start.mcfunction",
+      [
+        "# boot sequence",
+        "execute as @a run function claw:grant",
+        "scoreboard players add @s claws 1",
+        "summon lightning_bolt ~ ~ ~",
+        "",
+      ].join("\n"),
+    );
+    await writeFixture(
+      root,
+      "data/claw/advancements/first_claw.json",
+      JSON.stringify(
+        {
+          criteria: {
+            tick: {
+              trigger: "minecraft:tick",
+            },
+          },
+          rewards: {
+            function: "claw:start",
+          },
+        },
+        null,
+        2,
+      ),
+    );
+    await writeFixture(
+      root,
+      "data/claw/recipes/claw_block.json",
+      JSON.stringify({ type: "minecraft:crafting_shaped", pattern: ["###"] }, null, 2),
+    );
+    await writeFixture(root, "data/claw/notes.json", "{}");
+
+    const project = await detectProject(root);
+    const result = await mapFeatures(root, project, []);
+    const titles = result.features.map((feature) => feature.title);
+    const fn = result.features.find((feature) => feature.title === "Minecraft function claw:start");
+    const advancement = result.features.find(
+      (feature) => feature.title === "Minecraft advancement claw:first_claw",
+    );
+
+    expect(titles).toContain("Minecraft datapack metadata");
+    expect(titles).toContain("Minecraft function claw:start");
+    expect(titles).toContain("Minecraft advancement claw:first_claw");
+    expect(titles).toContain("Minecraft recipe claw:claw_block");
+    expect(titles).not.toContain("Minecraft tag claw:notes");
+    expect(fn?.kind).toBe("job");
+    expect(fn?.entrypoints[0]?.command).toBe("claw:start");
+    expect(fn?.summary).toContain("with 3 commands");
+    expect(fn?.trustBoundaries).toEqual([
+      "concurrency",
+      "database",
+      "external-api",
+      "filesystem",
+      "permissions",
+      "process-exec",
+      "serialization",
+      "user-input",
+    ]);
+    expect(advancement?.summary).toContain("trigger minecraft:tick");
+    expect(advancement?.summary).toContain("function claw:start");
+    expect(advancement?.contextFiles).toEqual([
+      { path: "pack.mcmeta", reason: "datapack metadata" },
+    ]);
+  });
+
   it("maps Next routes under src/app and src/pages", async () => {
     const root = await fixtureRoot("clawpatch-map-next-src-");
     await writeFixture(
