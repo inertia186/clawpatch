@@ -4482,6 +4482,92 @@ let package = Package(name: "HybridApp", targets: [.target(name: "HybridApp")])
     ]);
   });
 
+  it("maps Haskell Cabal stanzas and import-shaped trust boundaries", async () => {
+    const root = await fixtureRoot("clawpatch-haskell-map-");
+    await writeFixture(
+      root,
+      "gawk.cabal",
+      [
+        "cabal-version: 3.0",
+        "name: gawk",
+        "",
+        "library",
+        "  hs-source-dirs: src",
+        "  exposed-modules: Gawk.Lib",
+        "",
+        "executable gawk-cli",
+        "  hs-source-dirs: app",
+        "  main-is: Main.hs",
+        "",
+        "test-suite gawk-test",
+        "  type: exitcode-stdio-1.0",
+        "  hs-source-dirs: test",
+        "  main-is: Spec.hs",
+        "",
+      ].join("\n"),
+    );
+    await writeFixture(
+      root,
+      "src/Gawk/Lib.hs",
+      [
+        "module Gawk.Lib where",
+        "import Network.HTTP.Client",
+        "import qualified Data.Aeson as Aeson",
+        "run = pure ()",
+        "",
+      ].join("\n"),
+    );
+    await writeFixture(
+      root,
+      "app/Main.hs",
+      [
+        "module Main where",
+        "import System.Environment",
+        "import System.Process",
+        "main = pure ()",
+        "",
+      ].join("\n"),
+    );
+    await writeFixture(root, "test/Spec.hs", "module Main where\nmain = pure ()\n");
+
+    const project = await detectProject(root);
+    const result = await mapFeatures(root, project, []);
+    const titles = result.features.map((feature) => feature.title);
+    const library = result.features.find((feature) => feature.title === "Haskell library gawk");
+    const executable = result.features.find(
+      (feature) => feature.title === "Haskell executable gawk-cli",
+    );
+
+    expect(titles).toContain("Haskell library gawk");
+    expect(titles).toContain("Haskell executable gawk-cli");
+    expect(titles).toContain("Haskell test suite gawk-test");
+    expect(library?.entrypoints[0]?.path).toBe("src/Gawk/Lib.hs");
+    expect(library?.trustBoundaries).toEqual(["external-api", "network", "serialization"]);
+    expect(executable?.entrypoints[0]?.path).toBe("app/Main.hs");
+    expect(executable?.trustBoundaries).toEqual(["process-exec", "secrets", "user-input"]);
+    expect(executable?.tests).toEqual([{ path: "test/Spec.hs", command: "cabal test all" }]);
+  });
+
+  it("maps conventional Haskell Stack and Hpack projects", async () => {
+    const root = await fixtureRoot("clawpatch-haskell-convention-map-");
+    await writeFixture(root, "package.yaml", "name: wistful\n");
+    await writeFixture(root, "stack.yaml", "resolver: lts-22.0\n");
+    await writeFixture(root, "src/Wistful.hs", "module Wistful where\n");
+    await writeFixture(root, "app/Main.hs", "module Main where\nmain = pure ()\n");
+    await writeFixture(root, "spec/WistfulSpec.hs", "module Main where\nmain = pure ()\n");
+
+    const project = await detectProject(root);
+    const result = await mapFeatures(root, project, []);
+    const source = result.features.find((feature) => feature.title === "Haskell source src");
+    const executable = result.features.find(
+      (feature) => feature.title === "Haskell executable app/Main.hs",
+    );
+
+    expect(result.features.map((feature) => feature.title)).toContain("Haskell test suite");
+    expect(source?.tests).toEqual([{ path: "spec/WistfulSpec.hs", command: "stack test" }]);
+    expect(executable?.tests).toEqual([{ path: "spec/WistfulSpec.hs", command: "stack test" }]);
+  });
+
   it("maps CMake C and C++ targets without duplicating main files", async () => {
     const root = await fixtureRoot("clawpatch-cmake-cpp-map-");
     await writeFixture(

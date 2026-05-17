@@ -45,6 +45,8 @@ Supported deterministic mappers today:
 - Ruby project metadata, executables, source groups, RSpec/Minitest suites,
   Rails configs, routes, views, assets, and database files
 - Rust Cargo commands, libraries, workspace crates, and integration tests
+- Haskell Cabal executable, library, test-suite, and benchmark stanzas, plus
+  conventional Stack/Hpack source and test groups
 - C/C++ standalone `main()` files, CMake targets, and autotools targets
 - SwiftPM executable targets, library targets, and test suites
 - nested SwiftPM packages

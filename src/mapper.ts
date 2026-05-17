@@ -5,6 +5,7 @@ import { configSeeds } from "./mappers/config.js";
 import { goSeeds } from "./mappers/go.js";
 import { appleSeeds } from "./mappers/apple.js";
 import { gradleSeeds } from "./mappers/gradle.js";
+import { haskellSeeds } from "./mappers/haskell.js";
 import { laravelSeeds } from "./mappers/laravel.js";
 import { nextSeeds } from "./mappers/next.js";
 import { nodeSeeds } from "./mappers/node.js";
@@ -34,6 +35,7 @@ const featureMappers: FeatureMapper[] = [
   { name: "python", map: pythonSeeds },
   { name: "ruby", map: rubySeeds },
   { name: "rust", map: rustSeeds },
+  { name: "haskell", map: haskellSeeds },
   { name: "c-cpp", map: cCppSeeds },
   { name: "swift", map: swiftSeeds },
   { name: "apple", map: appleSeeds },
